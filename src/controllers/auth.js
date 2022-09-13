@@ -5,6 +5,7 @@ const querystring = require('querystring');
 const stateKey = 'spotify_auth_state';
 const CLIENT_ID = process.env.CLIENT_ID;
 const REDIRECT_URI = process.env.REDIRECT_URI;
+const FRONT_URL = process.env.FRONT_URL;
 
 async function login(req, res, next) {
     try {
@@ -37,7 +38,7 @@ async function callback(req, res, next) {
                 refresh_token,
                 expires_in,
             });
-            res.redirect(`http://localhost:3000/?${queryParams}`)
+            res.redirect(`${FRONT_URL}/?${queryParams}`)
         }
         else {
             console.error(`Invalid token error: ${accessTokenResponse.error}`)
