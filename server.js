@@ -5,7 +5,7 @@ const cors = require('cors')
 require('dotenv').config()
 const bodyParser = require('body-parser');
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 8000;
 const eventsRouter = require('./src/routes/events');
 const mongoose = require('mongoose');
 const connectionString = process.env.ATLAS_URI;
