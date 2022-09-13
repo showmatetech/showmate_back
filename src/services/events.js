@@ -1,7 +1,7 @@
 const axios = require('axios')
 const Artist = require('../models/artist')
 
-const SONGKICK_API_KEY = 'jwzmbEyCAIwD7HCy'
+const SONGKICK_API_KEY = process.env.SONGKICK_API_KEY
 
 async function getUpcomingEventsByMetroArea(lat, long, min_date, max_date) {
     try {
