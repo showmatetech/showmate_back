@@ -62,8 +62,12 @@ const userSchema = new Schema({
   }],
   status: {
     type: String,
-    enum : ['INITIAL_STATE', 'COLLECTING_DATA', 'DATA_COLLECTED', 'AVAILABLE_RESULTS'],
+    enum : ['INITIAL_STATE', 'COLLECTING_DATA', 'AVAILABLE_RESULTS'],
     default: 'INITIAL_STATE'
+  },
+  processedPhases: {
+    type: Number,
+    default: 0
   },
   recommendedEvents: [{
     type: recommendedEventSchema
