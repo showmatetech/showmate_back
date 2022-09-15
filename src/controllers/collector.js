@@ -149,6 +149,8 @@ async function secondPhase(req, res, next) {
 
         _secondPhase(access_token, userInfoResponse, user, likedItems, discardedItems)
 
+        res.header("Access-Control-Allow-Origin", "*");
+        res.header("Access-Control-Allow-Headers", "X-Requested-With");
         res.json({ status: 200 })
 
     } catch (err) {
@@ -189,6 +191,8 @@ async function finish(req, res, next) {
 
         await helpersUsers.sendProcessFinishedEmail(userInfo.email)
 
+        res.header("Access-Control-Allow-Origin", "*");
+        res.header("Access-Control-Allow-Headers", "X-Requested-With");
         res.json({ status: 200 })
     } catch (err) {
         console.error(`Error in getUserStatus`, err.message);
