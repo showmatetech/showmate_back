@@ -72,6 +72,9 @@ const userSchema = new Schema({
   recommendedEvents: [{
     type: recommendedEventSchema
   }],
+  artistsToAsk: {
+    type: Object
+  }
 }, { collection: 'users' })
 
 userSchema.index({ userId: 1 }, {unique:true})

@@ -4,6 +4,7 @@ const spotifyService = require('../services/spotify')
 const nodemailer = require("nodemailer")
 
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY
+const SEND_INTERVAL = 10000;
 
 async function createUser(req, res, next) {
     try {
@@ -76,8 +77,64 @@ async function getUserInfo(req, res, next) {
         next(err);
     }
 }
+const writeEvent = (res, sseId, data) => {
+    console.log('Evento enviado!')
+    res.write(`id: ${sseId}\n`);
+    res.write(`data: ${data}\n\n`);
+  }
+
+const sendEvent = async (_req, res, userId) => {
+    res.writeHead(200, {
+      'Cache-Control': 'no-cache',
+      Connection: 'keep-alive',
+      'Content-Type': 'text/event-stream',
+    });
+  
+    const sseId = new Date().toDateString();
+  
+    setInterval(async () => {
+    const userInfo = await User.findOne({userId}).lean()
+      writeEvent(res, sseId, JSON.stringify(userInfo));
+    }, SEND_INTERVAL);
+  
+    const userInfo = await User.findOne({userId}).lean()
+    writeEvent(res, sseId, JSON.stringify(userInfo));
+  };
+
+  
+async function getStatus(req, res, next) {
+    try {
+    if (req.headers.accept === 'text/event-stream') {
+        const access_token = req.query.access_token
+        if (!access_token) {
+            console.error(`User info error. Not access_token.`)
+            res.json({
+                status: 500
+            })
+            return
+        }
+        const userInfoResponse = await spotifyService.getUserInfo(access_token)
+        if (!userInfoResponse) {
+            console.error(`User info error. Not userInfoResponse`)
+            res.json({
+                status: 500
+            })
+            return
+        }
+        sendEvent(req, res, userInfoResponse.id);
+      } else {
+        res.json({ message: 'Ok' });
+      }
+    } catch (err) {
+        console.error(`Error in getStatus`, err.message);
+        next(err);
+    }
+}
+
+
 
 module.exports = {
     createUser,
-    getUserInfo 
+    getUserInfo,
+    getStatus
 }

@@ -7,6 +7,34 @@ const helpersEvents = require('../utils/helpersEvents')
 const helpersTracks = require('../utils/helpersTracks')
 const helpersUsers = require('../utils/helpersUsers')
 
+async function _firstPhase(access_token, userInfoResponse, lat, long) {
+        //Possible envents
+        helpersEvents.getPossibleEvents(access_token, userInfoResponse.id, lat, long, '2022-09-01', '2022-10-30')
+
+        let artists = {}
+
+        //User Top Artists
+        const userTopArtists = await helpersUsers.getUserTopArtists(access_token)
+        artists[1] = userTopArtists
+        await helperArtists.saveArtists(userTopArtists)
+
+        //Related Artists
+        const relatedArtists = await helperArtists.getRelatedArtists(access_token, artists[1], artists, true)
+        artists[1] = (artists[1] && artists[1].length > 0) ? artists[1].concat(relatedArtists) : relatedArtists
+        await helperArtists.saveArtists(relatedArtists)
+        console.log(`Score 1 OK!`)
+
+        //Save scored artists on user
+        const plainArtistsList = await helpersUsers.saveUserArtistsScored(userInfoResponse.id, artists)
+
+        //Start async processing tracks -> no await
+        helpersTracks.processTracks(access_token, plainArtistsList, userInfoResponse.id)
+
+        //Artists to ask
+        const artistsToAsk = await helperArtists.getArtistsToAsk(access_token, relatedArtists, artists, true)
+
+        await helpersUsers.saveArtistsToAsk(userInfoResponse.id, artistsToAsk)
+}
 async function firstPhase(req, res, next) {
     try {
         const access_token = req.query.access_token
@@ -38,36 +66,14 @@ async function firstPhase(req, res, next) {
             access_token: access_token,
             artists: [], //TODO
             events: [], //TODO
-            processedPhases: 0
+            processedPhases: 0,
+            artistsToAsk: [] //TODO
         }
-        const userInfo = await User.findOneAndUpdate(filter, update, { new: true, upsert: true })
+        await User.findOneAndUpdate(filter, update, { new: true, upsert: true })
 
-        //Possible envents
-        helpersEvents.getPossibleEvents(access_token, userInfoResponse.id, lat, long, '2022-09-01', '2022-10-30')
+        _firstPhase(access_token, userInfoResponse, lat, long)
 
-        let artists = {}
-
-        //User Top Artists
-        const userTopArtists = await helpersUsers.getUserTopArtists(access_token)
-        artists[1] = userTopArtists
-        await helperArtists.saveArtists(userTopArtists)
-
-        //Related Artists
-        const relatedArtists = await helperArtists.getRelatedArtists(access_token, artists[1], artists, true)
-        artists[1] = (artists[1] && artists[1].length > 0) ? artists[1].concat(relatedArtists) : relatedArtists
-        await helperArtists.saveArtists(relatedArtists)
-        console.log(`Score 1 OK!`)
-
-        //Save scored artists on user
-        const plainArtistsList = await helpersUsers.saveUserArtistsScored(userInfoResponse.id, artists)
-
-        //Start async processing tracks -> no await
-        helpersTracks.processTracks(access_token, plainArtistsList, userInfoResponse.id)
-
-        //Artists to ask
-        const artistsToAsk = await helperArtists.getArtistsToAsk(access_token, relatedArtists, artists, true)
-
-        res.json({ status: 200, userInfo: userInfo, artistsToAsk: artistsToAsk })
+        res.json({ status: 200 })
 
     } catch (err) {
         console.error(`Error in startAI`, err.message);
@@ -149,8 +155,6 @@ async function secondPhase(req, res, next) {
 
         _secondPhase(access_token, userInfoResponse, user, likedItems, discardedItems)
 
-        res.header("Access-Control-Allow-Origin", "*");
-        res.header("Access-Control-Allow-Headers", "X-Requested-With");
         res.json({ status: 200 })
 
     } catch (err) {
@@ -191,8 +195,6 @@ async function finish(req, res, next) {
 
         await helpersUsers.sendProcessFinishedEmail(userInfo.email)
 
-        res.header("Access-Control-Allow-Origin", "*");
-        res.header("Access-Control-Allow-Headers", "X-Requested-With");
         res.json({ status: 200 })
     } catch (err) {
         console.error(`Error in getUserStatus`, err.message);

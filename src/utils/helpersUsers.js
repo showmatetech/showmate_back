@@ -24,6 +24,10 @@ async function updateUserRecommendedEvents(userId, recommendedEvents) {
     await User.findOneAndUpdate({ userId: userId }, { recommendedEvents: recommendedEvents })
 }
 
+async function saveArtistsToAsk(userId, artistsToAsk) {
+    await User.findOneAndUpdate({ userId: userId }, { artistsToAsk: artistsToAsk })
+}
+
 async function saveUserEvents(userId, events) {
     await User.findOneAndUpdate({ userId: userId }, { events: events })
 }
@@ -135,6 +139,7 @@ async function sendProcessFinishedEmail(email) {
 module.exports = {
     getUserArtists,
     updateUserStatus,
+    saveArtistsToAsk,
     increaseUserProcessedPhases,
     updateUserRecommendedEvents,
     saveUserEvents,

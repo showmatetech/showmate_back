@@ -13,6 +13,8 @@ router.get('/refresh_token', authController.refresh_token)
 
 router.get('/user', userController.getUserInfo)
 
+router.get('/status', userController.getStatus)
+
 router.post('/user/create', userController.createUser)
 
 
@@ -22,6 +24,7 @@ router.post('/start', collectorController.firstPhase)
 router.post('/selection', collectorController.secondPhase)
 
 router.post('/finish', collectorController.finish)
+
 
 
 module.exports = router
