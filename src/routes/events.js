@@ -18,6 +18,7 @@ router.get('/status', userController.getStatus)
 router.post('/user/create', userController.createUser)
 
 
+router.get('/restart', collectorController.restart)
 
 router.get('/start', collectorController.firstPhase)
 

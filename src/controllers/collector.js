@@ -52,9 +52,6 @@ async function firstPhase(req, res, next) {
             return
         }
 
-        const lat = req.body.lat
-        const long = req.body.long
-
         let filter = { userId: userInfoResponse.id }
         let update = {
             email: userInfoResponse.email,
@@ -62,14 +59,15 @@ async function firstPhase(req, res, next) {
             display_name: userInfoResponse.display_name,
             uri: userInfoResponse.uri,
             access_token: access_token,
-            artists: [], //TODO
-            events: [], //TODO
+            artists: [],
+            events: [],
             processedPhases: 0,
-            artistsToAsk: [] //TODO
+            artistsToAsk: [],
+            status: 'INITIAL_STATE'
         }
         await User.findOneAndUpdate(filter, update, { new: true, upsert: true })
 
-        _getArtistsToAsk(access_token, userInfoResponse, lat, long)
+        _getArtistsToAsk(access_token, userInfoResponse)
 
         res.json({ status: 200 })
 
@@ -236,10 +234,52 @@ async function finish(req, res, next) {
     }
 }
 
+async function restart(req, res, next) {
+    try {
+        const access_token = req.query.access_token
+        if (!access_token) {
+            console.error(`Restart error. Not access_token.`)
+            res.json({
+                status: 500
+            })
+            return
+        }
+        const userInfoResponse = await spotifyService.getUserInfo(access_token)
+        if (!userInfoResponse) {
+            console.error(`Restart error. Not userInfoResponse.`)
+            res.json({
+                status: 500
+            })
+            return
+        }
+
+        let filter = { userId: userInfoResponse.id }
+        let update = {
+            email: userInfoResponse.email,
+            country: userInfoResponse.country,
+            display_name: userInfoResponse.display_name,
+            uri: userInfoResponse.uri,
+            access_token: access_token,
+            artists: [],
+            events: [],
+            processedPhases: 0,
+            artistsToAsk: [],
+            status: 'INITIAL_STATE'
+        }
+        await User.findOneAndUpdate(filter, update, { new: true, upsert: true })
+
+        res.json({ status: 200 })
+
+    } catch (err) {
+        console.error(`Error in restart`, err.message);
+        next(err);
+    }
+}
 
 module.exports = {
     firstPhase,
     secondPhase,
     thirdPhase,
     finish,
+    restart
 }
