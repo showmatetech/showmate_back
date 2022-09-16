@@ -19,9 +19,11 @@ router.post('/user/create', userController.createUser)
 
 
 
-router.post('/start', collectorController.firstPhase)
+router.get('/start', collectorController.firstPhase)
 
-router.post('/selection', collectorController.secondPhase)
+router.post('/location', collectorController.secondPhase)
+
+router.post('/selection', collectorController.thirdPhase)
 
 router.post('/finish', collectorController.finish)
 

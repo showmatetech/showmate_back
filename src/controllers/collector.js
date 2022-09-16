@@ -7,12 +7,8 @@ const helpersEvents = require('../utils/helpersEvents')
 const helpersTracks = require('../utils/helpersTracks')
 const helpersUsers = require('../utils/helpersUsers')
 
-async function _firstPhase(access_token, userInfoResponse, lat, long) {
-        //Possible envents
-        helpersEvents.getPossibleEvents(access_token, userInfoResponse.id, lat, long, '2022-09-01', '2022-10-30')
-
+async function _getArtistsToAsk(access_token, userInfoResponse) {
         let artists = {}
-
         //User Top Artists
         const userTopArtists = await helpersUsers.getUserTopArtists(access_token)
         artists[1] = userTopArtists
@@ -34,6 +30,8 @@ async function _firstPhase(access_token, userInfoResponse, lat, long) {
         const artistsToAsk = await helperArtists.getArtistsToAsk(access_token, relatedArtists, artists, true)
 
         await helpersUsers.saveArtistsToAsk(userInfoResponse.id, artistsToAsk)
+
+        await helpersUsers.updateUserStatus(userInfoResponse.id, 'WAITING_SELECTION')
 }
 async function firstPhase(req, res, next) {
     try {
@@ -71,7 +69,43 @@ async function firstPhase(req, res, next) {
         }
         await User.findOneAndUpdate(filter, update, { new: true, upsert: true })
 
-        _firstPhase(access_token, userInfoResponse, lat, long)
+        _getArtistsToAsk(access_token, userInfoResponse, lat, long)
+
+        res.json({ status: 200 })
+
+    } catch (err) {
+        console.error(`Error in startAI`, err.message);
+        next(err);
+    }
+}
+async function _getEvents(access_token, userInfoResponse, lat, long) {
+    //Possible envents
+    helpersEvents.getPossibleEvents(access_token, userInfoResponse.id, lat, long, '2022-09-01', '2022-10-30')
+}
+
+async function secondPhase(req, res, next) {
+    try {
+        const access_token = req.query.access_token
+        if (!access_token) {
+            console.error(`Get events error. Not access_token.`)
+            res.json({
+                status: 500
+            })
+            return
+        }
+        const userInfoResponse = await spotifyService.getUserInfo(access_token)
+        if (!userInfoResponse) {
+            console.error(`Get events error. Not userInfoResponse.`)
+            res.json({
+                status: 500
+            })
+            return
+        }
+
+        const lat = req.body.lat
+        const long = req.body.long
+
+        _getEvents(access_token, userInfoResponse, lat, long)
 
         res.json({ status: 200 })
 
@@ -81,7 +115,7 @@ async function firstPhase(req, res, next) {
     }
 }
 
-async function _secondPhase(access_token, userInfoResponse, user, likedItems, discardedItems) {
+async function _processSelection(access_token, userInfoResponse, user, likedItems, discardedItems) {
     try {
         let scoredArtistsIds = []
         for (let { score, artists } of user.artists) {
@@ -127,7 +161,7 @@ async function _secondPhase(access_token, userInfoResponse, user, likedItems, di
     }
 }
 
-async function secondPhase(req, res, next) {
+async function thirdPhase(req, res, next) {
     try {
         const access_token = req.query.access_token
         if (!access_token) {
@@ -153,7 +187,7 @@ async function secondPhase(req, res, next) {
 
         await helpersUsers.updateUserStatus(userInfoResponse.id, 'COLLECTING_DATA')
 
-        _secondPhase(access_token, userInfoResponse, user, likedItems, discardedItems)
+        _processSelection(access_token, userInfoResponse, user, likedItems, discardedItems)
 
         res.json({ status: 200 })
 
@@ -206,5 +240,6 @@ async function finish(req, res, next) {
 module.exports = {
     firstPhase,
     secondPhase,
+    thirdPhase,
     finish,
 }

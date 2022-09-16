@@ -62,7 +62,7 @@ const userSchema = new Schema({
   }],
   status: {
     type: String,
-    enum : ['INITIAL_STATE', 'COLLECTING_DATA', 'AVAILABLE_RESULTS'],
+    enum : ['INITIAL_STATE', 'WAITING_SELECTION', 'COLLECTING_DATA', 'AVAILABLE_RESULTS'],
     default: 'INITIAL_STATE'
   },
   processedPhases: {

@@ -4,7 +4,7 @@ const spotifyService = require('../services/spotify')
 const nodemailer = require("nodemailer")
 
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY
-const SEND_INTERVAL = 10000;
+const SEND_INTERVAL = 5000;
 
 async function createUser(req, res, next) {
     try {
