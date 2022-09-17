@@ -3,6 +3,7 @@ const spotifyService = require('../services/spotify')
 const helperArtists = require('./helperArtists')
 const nodemailer = require("nodemailer")
 const fs = require('fs')
+const path = require('path')
 
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY
 
@@ -13,6 +14,16 @@ async function getUserArtists(userId) {
 async function updateUserStatus(userId, status) {
     const user = await User.findOneAndUpdate({ userId: userId }, { status: status }, {new: true}).lean()
     return user.status
+}
+
+async function updateUserLatLong(userId, lat, long) {
+    const user = await User.findOneAndUpdate({ userId: userId }, { location: {lat: lat, long: long} }, {new: true}).lean()
+    return user.location
+}
+
+async function updateEventsSelection(userId, eventsSelection) {
+    const user = await User.findOneAndUpdate({ userId: userId }, { eventsSelection: eventsSelection }, {new: true}).lean()
+    return user.eventsSelection
 }
 
 async function increaseUserProcessedPhases(userId) {
@@ -92,7 +103,7 @@ async function sendProcessFinishedEmail(email) {
         }
     })
 
-    const html = fs.readFileSync('/Users/javiermartinezfernandez/Documents/PROJECTS/tfm/back/src/mail/finish/mail.html').toString()
+    const html = fs.readFileSync(path.resolve(__dirname, '../mail/finish/mail.html'));
 
     // send mail with defined transport object
     let info = await transporter.sendMail({
@@ -103,32 +114,32 @@ async function sendProcessFinishedEmail(email) {
         html: html,
         attachments: [{
             filename: 'image-1.png',
-            path: '/Users/javiermartinezfernandez/Documents/PROJECTS/tfm/back/src/mail/finish/images/image-1.png',
+            path: path.resolve(__dirname, '../mail/finish/images/image-1.png'),
             cid: 'images/image-1.png'
         },
         {
             filename: 'image-2.png',
-            path: '/Users/javiermartinezfernandez/Documents/PROJECTS/tfm/back/src/mail/finish/images/image-2.png',
+            path: path.resolve(__dirname, '../mail/finish/images/image-2.png'),
             cid: 'images/image-2.png'
         },
         {
             filename: 'image-3.png',
-            path: '/Users/javiermartinezfernandez/Documents/PROJECTS/tfm/back/src/mail/finish/images/image-3.png',
+            path: path.resolve(__dirname, '../mail/finish/images/image-3.png'),
             cid: 'images/image-3.png'
         },
         {
             filename: 'image-4.png',
-            path: '/Users/javiermartinezfernandez/Documents/PROJECTS/tfm/back/src/mail/finish/images/image-4.png',
+            path: path.resolve(__dirname, '../mail/finish/images/image-4.png'),
             cid: 'images/image-4.png'
         },
         {
             filename: 'image-5.png',
-            path: '/Users/javiermartinezfernandez/Documents/PROJECTS/tfm/back/src/mail/finish/images/image-5.png',
+            path: path.resolve(__dirname, '../mail/finish/images/image-5.png'),
             cid: 'images/image-5.png'
         },
         {
             filename: 'image-6.png',
-            path: '/Users/javiermartinezfernandez/Documents/PROJECTS/tfm/back/src/mail/finish/images/image-6.png',
+            path: path.resolve(__dirname, '../mail/finish/images/image-6.png'),
             cid: 'images/image-6.png'
         }]
     })
@@ -145,5 +156,7 @@ module.exports = {
     saveUserEvents,
     saveUserArtistsScored,
     getUserTopArtists,
-    sendProcessFinishedEmail
+    sendProcessFinishedEmail,
+    updateUserLatLong,
+    updateEventsSelection
 }

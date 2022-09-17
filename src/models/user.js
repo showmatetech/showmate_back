@@ -11,6 +11,15 @@ const artistsSchema = new Schema({
   }]
 }, { _id : false })
 
+const locationSchema = new Schema({
+  lat: {
+    type: Number
+  },
+  long: {
+    type: Number
+  },
+}, { _id : false })
+
 const recommendedEventSchema = new Schema({
   eventId: {
     type: String,
@@ -73,6 +82,12 @@ const userSchema = new Schema({
     type: recommendedEventSchema
   }],
   artistsToAsk: {
+    type: Object
+  },
+  location: {
+    type: locationSchema
+  },
+  eventsSelection: {
     type: Object
   }
 }, { collection: 'users' })

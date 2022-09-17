@@ -26,6 +26,8 @@ router.post('/location', collectorController.secondPhase)
 
 router.post('/selection', collectorController.thirdPhase)
 
+router.post('/eventsselection', collectorController.eventsSelection)
+
 router.post('/finish', collectorController.finish)
 
 

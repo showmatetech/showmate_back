@@ -27,8 +27,10 @@ async function saveEvents(events) {
 async function getPossibleEvents(access_token, userId, lat, long, minDate, maxDate) {
     console.log(`Starting Getting Possible Events...`)
     let artistsByEvent = {}
-    const events = await songkickService.getUpcomingEventsByMetroArea(lat, long, minDate, maxDate)
+    let events = await songkickService.getUpcomingEventsByMetroArea(lat, long, minDate, maxDate)
     console.log(`${events.length} Possible Events found...`)
+
+    events = events.slice(0, 100) //TODO
 
     for (const event of events) {
         for (const artist of event.performance) {

@@ -63,7 +63,9 @@ async function firstPhase(req, res, next) {
             events: [],
             processedPhases: 0,
             artistsToAsk: [],
-            status: 'INITIAL_STATE'
+            status: 'INITIAL_STATE',
+            location: {},
+            eventsSelection: []
         }
         await User.findOneAndUpdate(filter, update, { new: true, upsert: true })
 
@@ -104,6 +106,8 @@ async function secondPhase(req, res, next) {
         const long = req.body.long
 
         _getEvents(access_token, userInfoResponse, lat, long)
+
+        await helpersUsers.updateUserLatLong(userInfoResponse.id, lat, long)
 
         res.json({ status: 200 })
 
@@ -234,6 +238,38 @@ async function finish(req, res, next) {
     }
 }
 
+async function eventsSelection(req, res, next) {
+    try {
+        const access_token = req.query.access_token
+        if (!access_token) {
+            console.error(`Get events error. Not access_token.`)
+            res.json({
+                status: 500
+            })
+            return
+        }
+        const userInfoResponse = await spotifyService.getUserInfo(access_token)
+        if (!userInfoResponse) {
+            console.error(`Get events error. Not userInfoResponse.`)
+            res.json({
+                status: 500
+            })
+            return
+        }
+
+        const likedItems = req.body.likedItems
+        const discardedItems = req.body.discardedItems
+
+        await helpersUsers.updateEventsSelection(userInfoResponse.id, {likedItems, discardedItems})
+
+        res.json({ status: 200 })
+
+    } catch (err) {
+        console.error(`Error in startAI`, err.message);
+        next(err);
+    }
+}
+
 async function restart(req, res, next) {
     try {
         const access_token = req.query.access_token
@@ -264,7 +300,9 @@ async function restart(req, res, next) {
             events: [],
             processedPhases: 0,
             artistsToAsk: [],
-            status: 'INITIAL_STATE'
+            status: 'INITIAL_STATE',
+            location: {},
+            eventsSelection: []
         }
         await User.findOneAndUpdate(filter, update, { new: true, upsert: true })
 
@@ -276,10 +314,12 @@ async function restart(req, res, next) {
     }
 }
 
+
 module.exports = {
     firstPhase,
     secondPhase,
     thirdPhase,
     finish,
+    eventsSelection,
     restart
 }
