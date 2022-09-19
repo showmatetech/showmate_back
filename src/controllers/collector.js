@@ -261,6 +261,7 @@ async function eventsSelection(req, res, next) {
         const discardedItems = req.body.discardedItems
 
         await helpersUsers.updateEventsSelection(userInfoResponse.id, {likedItems, discardedItems})
+        await helpersUsers.updateUserStatus(userInfoResponse.id, 'RESULTS_RANKED')
 
         res.json({ status: 200 })
 

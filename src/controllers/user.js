@@ -30,7 +30,7 @@ async function createUser(req, res, next) {
 
         await transporter.sendMail({
             from: 'Showmate Support showmate.sup@gmail.com',
-            to: 'javiermf.98@gmail.com', //TODO
+            to: 'showmate.sup@gmail.com',
             subject: "Nuevo usuario!",
             text: `El usuario con email ${email} quiere acceder a Showmate!`
         })
