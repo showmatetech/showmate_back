@@ -82,7 +82,7 @@ async function _getEvents(access_token, userInfoResponse, lat, long) {
     //Possible envents
     const today = new Date()
     const todayFormatted = today.toISOString().split('T')[0]
-    const today1Month = new Date(date.setMonth(date.getMonth()+8))
+    const today1Month = new Date(today.setMonth(today.getMonth()+8))
     const today1MonthFormatted = today1Month.toISOString().split('T')[0]
     helpersEvents.getPossibleEvents(access_token, userInfoResponse.id, lat, long, todayFormatted, today1MonthFormatted)
 }
