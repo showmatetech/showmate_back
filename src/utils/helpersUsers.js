@@ -108,7 +108,7 @@ async function sendProcessFinishedEmail(email) {
     // send mail with defined transport object
     let info = await transporter.sendMail({
         from: 'Showmate Support showmate.sup@gmail.com',
-        to: 'javiermf.98@gmail.com', //TODO email
+        to: email,
         subject: "Eventos recomendados disponibles!",
         text: html,
         html: html,

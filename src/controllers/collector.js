@@ -80,7 +80,11 @@ async function firstPhase(req, res, next) {
 }
 async function _getEvents(access_token, userInfoResponse, lat, long) {
     //Possible envents
-    helpersEvents.getPossibleEvents(access_token, userInfoResponse.id, lat, long, '2022-09-01', '2022-10-30')
+    const today = new Date()
+    const todayFormatted = today.toISOString().split('T')[0]
+    const today1Month = new Date(date.setMonth(date.getMonth()+8))
+    const today1MonthFormatted = today1Month.toISOString().split('T')[0]
+    helpersEvents.getPossibleEvents(access_token, userInfoResponse.id, lat, long, todayFormatted, today1MonthFormatted)
 }
 
 async function secondPhase(req, res, next) {
